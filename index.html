@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UnSource Engine - PBR Test</title>
+    <style>
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #111; color: white; font-family: sans-serif; }
+        canvas { display: block; width: 100vw; height: 100vh; position: absolute; z-index: 1; }
+        #ui { position: absolute; top: 10px; left: 10px; z-index: 10; background: rgba(0,0,0,0.7); padding: 15px; border-radius: 8px; border: 1px solid #333; }
+        button { background: #7a52cc; color: white; border: none; padding: 8px 12px; cursor: pointer; border-radius: 4px; margin-top: 10px;}
+        button:hover { background: #9b72ec; }
+    </style>
+</head>
+<body>
+
+    <div id="ui">
+        <h2>UnSource Engine</h2>
+        <p>PBR Material Grid (Metallic vs Roughness)</p>
+        <button onclick="addEmissive()">Spawn Glowing Object</button>
+    </div>
+
+    <canvas id="renderCanvas"></canvas>
+
+    <script src="unsource.js"></script>
+    <script>
+        // Initialize Engine
+        const engine = new UnSourceEngine('renderCanvas');
+
+        // Create a grid of spheres to show off the PBR shader
+        // X-axis: Increasing Roughness
+        // Y-axis: Increasing Metallic
+        for(let x = 0; x <= 4; x++) {
+            for(let y = 0; y <= 4; y++) {
+                let roughness = Math.max(0.05, x / 4.0); 
+                let metallic = y / 4.0;
+                // addMesh(x, y, z, r, g, b, metallic, roughness)
+                engine.addMesh((x - 2) * 2.5, (y - 2) * 2.5, 0, 0.8, 0.2, 0.2, metallic, roughness);
+            }
+        }
+
+        function addEmissive() {
+            // Emulate an emissive object by pushing base color way past 1.0 to trigger Bloom
+            engine.addMesh(0, 0, 4, 10.0, 2.0, 10.0, 0.0, 1.0);
+        }
+
+        // Orbit controls
+        let isDragging = false, lastMouse = {x:0, y:0};
+        window.addEventListener('mousedown', e => { isDragging = true; lastMouse = {x: e.clientX, y: e.clientY}; });
+        window.addEventListener('mouseup', () => isDragging = false);
+        window.addEventListener('mousemove', e => {
+            if(isDragging) {
+                engine.camera.ry += (e.clientX - lastMouse.x) * 0.01;
+                engine.camera.rx += (e.clientY - lastMouse.y) * 0.01;
+                lastMouse = {x: e.clientX, y: e.clientY};
+            }
+        });
+        window.addEventListener('wheel', e => { engine.camera.dist += e.deltaY * 0.01; });
+
+        // Start Loop
+        engine.render();
+    </script>
+</body>
+</html>
+
